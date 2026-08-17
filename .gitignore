@@ -2,3 +2,4 @@
 /.idea/
 /.gradle
 /gradle
+/app/src/main/java/de/werner/cookmore/Secrets.kt

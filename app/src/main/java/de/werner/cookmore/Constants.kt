@@ -16,9 +16,5 @@ class Constants {
 
         val EMPTY_ICON_FILE = File("empty_icon.png")
 
-        val LLM_API_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:generateContent"
-
-        val LLM_API_KEY = "AIzaSyB4FgF-lKAm1EmANV9RVHMYXUZtUey0yYE"
-
     }
 }

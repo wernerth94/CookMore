@@ -101,7 +101,7 @@ class Util {
             val request = Request.Builder()
                 .url("https://generativelanguage.googleapis.com/v1beta/listmodels")
                 .header("Content-Type", "application/json")
-                .header("X-goog-api-key", Constants.LLM_API_KEY)
+                .header("X-goog-api-key", Secrets.LLM_API_KEY)
                 .post(requestBody.toRequestBody(MEDIA_TYPE))
                 .build()
 
@@ -144,9 +144,9 @@ class Util {
             val MEDIA_TYPE = "application/json".toMediaType()
             val requestBody = """{"contents":[{"parts": [{"text": "$prompt$page_content"}]}]}"""
             val request = Request.Builder()
-                .url(Constants.LLM_API_ENDPOINT)
+                .url(Secrets.LLM_API_ENDPOINT)
                 .header("Content-Type", "application/json")
-                .header("X-goog-api-key", Constants.LLM_API_KEY)
+                .header("X-goog-api-key", Secrets.LLM_API_KEY)
                 .post(requestBody.toRequestBody(MEDIA_TYPE))
                 .build()
 
