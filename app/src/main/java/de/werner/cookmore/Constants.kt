@@ -1,7 +1,5 @@
 package de.werner.cookmore
 
-import android.graphics.BitmapFactory
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import java.io.File
 
 class Constants {
@@ -14,7 +12,96 @@ class Constants {
         lateinit var FILES_DIR: File
         val RECIPES_DIR = File("recipes")
 
-        val EMPTY_ICON_FILE = File("empty_icon.png")
+        val BANNER_SIZE_OPTIONS = listOf(
+            "Full",
+            "Compact",
+            "None"
+        )
+
+        val RECIPE_SORTING_OPTIONS = listOf(
+            "Title",
+            "Date"
+        )
+
+        val APP_LANGUAGES = listOf(
+            "English",
+            "German",
+        )
+
+        val GEMINI_LANGUAGES = listOf(
+            "Keep original",
+            "Afrikaans",
+            "Albanian",
+            "Amharic",
+            "Arabic",
+            "Armenian",
+            "Assamese",
+            "Azerbijani",
+            "Basque",
+            "Belarusian",
+            "Bengali",
+            "Bosnian",
+            "Bulgarian",
+            "Catalan",
+            "Chinese (Simplified/Traditional/Hong Kong)",
+            "Croatian",
+            "Czech",
+            "Danish",
+            "Dutch",
+            "English",
+            "Estonian",
+            "Farsi",
+            "Filipino",
+            "Finnish",
+            "French",
+            "Galician",
+            "Georgian",
+            "German",
+            "Greek",
+            "Gujarati",
+            "Hebrew",
+            "Hindi",
+            "Hungarian",
+            "Icelandic",
+            "Indonesian",
+            "Italian",
+            "Japanese",
+            "Kannada",
+            "Kazakh",
+            "Khmer",
+            "Korean",
+            "Lao",
+            "Latvian",
+            "Lithuanian",
+            "Macedonian",
+            "Malay",
+            "Malayalam",
+            "Marathi",
+            "Mongolian",
+            "Nepali",
+            "Norwegian",
+            "Odia",
+            "Polish",
+            "Portuguese",
+            "Punjabi",
+            "Romanian",
+            "Russian",
+            "Serbian",
+            "Slovak",
+            "Slovenian",
+            "Spanish",
+            "Swahili",
+            "Swedish",
+            "Tamil",
+            "Telugu",
+            "Thai",
+            "Turkish",
+            "Ukrainian",
+            "Urdu",
+            "Uzbek",
+            "Vietnamese",
+            "Zulu"
+        )
 
     }
 }

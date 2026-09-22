@@ -1,15 +1,17 @@
 package de.werner.cookmore
 
+import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.ContextWrapper
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -76,7 +78,9 @@ class Util {
                         clean_text = clean_text.replace("\"", "")
                         Log.d("CookMore", "Length of webpage content: ${clean_text.length}")
 
-                        query_llm(clean_text, main_activity, get_app_state, success_callback, failure_callback)
+                        query_llm(
+                            clean_text, main_activity,
+                            get_app_state, success_callback, failure_callback)
                         if (get_app_state() != AppState.CREATING_RECIPE) {
                             return // The app_state can change during LLM eval
                         }
@@ -89,7 +93,7 @@ class Util {
                         clean_urls(urls, base_url)
                         image_candidate_list.addAll(urls)
 
-                        RecipeUtil.try_finalize_new_recipe(main_activity, url=url, success_callback=success_callback)
+                        main_activity.recipe_view_model.try_finalize_new_recipe(url=url, success_callback=success_callback)
                     }
                 }
             })
@@ -135,12 +139,18 @@ class Util {
                 return
             }
 
-            val prompt =  "Summarize this HTML page by extracting the recipe content and cooking instructions and removing all unnecessary information.\n" +
-                    "Finally, format this as an HTML page again, so that I can display it in a webview. " +
-//                    "Include the following a css class in the header to give all tagged ingredients the following background color rgb(217, 234, 242, 0.5)" +
-//                    "Surround every ingredient in the recipe with the following HTML span <span class=tagged data-tag=ingredient></span> ." +
-//                    "If the ingredient is vegetarian or vegan, add this information in the data-tag like ingredient,vegetarian or ingredient,vegan" +
-                    "Don't give me any additional text, just the HTML code. \n\n"
+            val recipe_language = main_activity.settings_view_model.recipe_language.value
+
+            var prompt =  "Summarize this HTML page by extracting the recipe content and cooking instructions and removing all unnecessary information.\n"
+            prompt += "Finally, format this as an HTML page again, so that I can display it in a webview. \n"
+            if (recipe_language.lowercase() == "keep original") {
+                prompt += "Please keep the original language of the recipe intact. \n"
+            }
+            else {
+                prompt += "Please translate language of the recipe to ${recipe_language}, if necessary. \n"
+            }
+            prompt += "Don't give me any additional text, just the HTML code. \n\n"
+
             val MEDIA_TYPE = "application/json".toMediaType()
             val requestBody = """{"contents":[{"parts": [{"text": "$prompt$page_content"}]}]}"""
             val request = Request.Builder()
@@ -178,7 +188,7 @@ class Util {
                     val content: JSONObject = ((json_object.get("candidates") as JSONArray).get(0) as JSONObject).get("content") as JSONObject
                     val response_text: String = ((content.get("parts") as JSONArray).get(0) as JSONObject).get("text") as String
                     val cleaned_text = response_text.replace("```html", "").replace("```", "")
-                    RecipeUtil.try_finalize_new_recipe(main_activity, content=cleaned_text, success_callback=success_callback)
+                    main_activity.recipe_view_model.try_finalize_new_recipe(content=cleaned_text, success_callback=success_callback)
                 }
             })
         }
@@ -270,6 +280,19 @@ class Util {
             return Bitmap.createBitmap(bitmap, x, y, size, size)
         }
 
+        fun banner_crop(bitmap: Bitmap, aspect:String = "16/9"): Bitmap {
+            when (aspect) {
+                "16/9" -> {
+                    val height = bitmap.width * (9.0 / 16.0)
+                    val y_center = bitmap.height / 2
+                    return Bitmap.createBitmap(bitmap,
+                        0, (y_center - height / 2).toInt(),
+                        bitmap.width, height.toInt())
+                }
+                else -> throw Exception("Aspect ratio not recognized")
+            }
+        }
+
         fun load_json(file: File): JSONObject? {
             try {
                 val inputStream = FileInputStream(file)
@@ -309,6 +332,15 @@ class Util {
             if (!url.contains("http"))  return false
 
             return true
+        }
+
+
+        fun check_runtime_permissions(context: Context) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.INTERNET)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                Toast.makeText(context, "Internet Permission not granted", Toast.LENGTH_LONG).show()
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 package de.werner.cookmore
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.ui.graphics.Color
 import java.io.File
 import java.io.FileInputStream
@@ -64,18 +63,13 @@ class RecipeUtil {
             }
         }
 
-        fun drop_title_from_html(recipe_html: String): String {
-            val regex = Regex("<h1>(.*?)</h1>", RegexOption.IGNORE_CASE)
-            val result = regex.replace(recipe_html, "")
-            return result
-        }
-
-        fun inject_css_for_viewer(recipe_html: String, color: Color): String {
+        fun inject_css_for_viewer(recipe_html: String, background_color: Color, font_size: Int): String {
             val header_regex = Regex("</head>", RegexOption.IGNORE_CASE)
             val injection = """
                 <style>
                     body {
-                      background-color: ${color.hashCode().toHtmlColor()};
+                      background-color: ${background_color.hashCode().toHtmlColor()};
+                      font-size: ${font_size}px;
                     }
                     .tagged {
                       display: inline;  
@@ -88,43 +82,6 @@ class RecipeUtil {
             return result
         }
 
-        fun try_finalize_new_recipe(
-            main_activity: MainActivity,
-            url: String? = null, content: String? = null,
-            image: Bitmap? = null, image_url: String? = null,
-            no_image_needed: Boolean? = null,
-            success_callback: (recipe: Recipe) -> Unit) {
 
-            val context = main_activity.recipe_repository
-            if (url != null) {
-                context.new_recipe_url = url
-            }
-            if (content != null) {
-                context.new_recipe_html = content
-            }
-            if (image != null) {
-                context.new_recipe_image = image
-            }
-            if (image_url != null) {
-                context.new_recipe_image_url = image_url
-            }
-            if (no_image_needed != null) {
-                context.new_recipe_no_image_needed = no_image_needed
-            }
-
-            if (context.new_recipe_url != null &&
-                context.new_recipe_html != null
-               ) {
-
-                if (context.new_recipe_no_image_needed ||
-                    (context.new_recipe_image != null &&
-                     context.new_recipe_image_url != null)) {
-
-                    Log.d("CookMore", "Storing recipe")
-                    val new_recipe = context.store_new_recipe(main_activity)
-                    success_callback(new_recipe)
-                }
-            }
-        }
     }
 }

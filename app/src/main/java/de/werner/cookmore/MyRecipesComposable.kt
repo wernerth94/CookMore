@@ -1,16 +1,17 @@
 package de.werner.cookmore
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import android.content.Intent
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,10 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
@@ -41,19 +40,27 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 enum class MyRecipesState {
@@ -61,31 +68,65 @@ enum class MyRecipesState {
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MyRecipes(modifier: Modifier = Modifier,
               navigation_callback: (dest: AppDestinations) -> Unit,
               set_current_recipe: (recipe: Recipe?) -> Unit,
-              force_user_interaction: (type: NavigationUIState, callback: ()->Unit) -> Unit
+              force_user_interaction: (type: NavigationUIState) -> Unit,
+              cancel_forced_user_interaction: () -> Unit,
+              forced_interaction_result: ForcedInteractionResult
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val parent_activity = context.findActivity<MainActivity>()
 
     if (parent_activity != null) {
+        val font_size = parent_activity.settings_view_model.font_size.collectAsState()
+        val recipe_sorting = parent_activity.settings_view_model.recipe_sorting.collectAsState()
+
         var three_dot_menu_expanded by remember { mutableStateOf(false) }
-        var state by remember { mutableStateOf(MyRecipesState.Normal) }
+        var state by rememberSaveable { mutableStateOf(MyRecipesState.Normal) }
         val focusManager = LocalFocusManager.current
         val focusRequester = remember { FocusRequester() }
         val keyboardController = LocalSoftwareKeyboardController.current
 
-        val data_store = remember { parent_activity.recipe_repository }
-        val search_query by data_store.search_query.collectAsState(initial = "")
-        val recipes by data_store.recipes_flow.collectAsState(initial = emptyList())
+        val search_query by parent_activity.recipe_view_model.search_query.collectAsState()
+        val updated_titles by rememberSaveable { mutableStateOf(HashMap<Int, String>()) }
+        val recipes by parent_activity.recipe_view_model.recipes_flow
+            .map{ recipes ->
+                when (recipe_sorting.value) {
+                    "Date" -> recipes.sortedBy { it.id }
+                    else -> recipes.sortedBy { it.title }
+                }
+            }
+            .collectAsState(initial = emptyList())
+
+        BackHandler(state == MyRecipesState.Edit) {
+            updated_titles.clear()
+            state = MyRecipesState.Normal
+            cancel_forced_user_interaction()
+        }
 
         LaunchedEffect(state) {
             if (state == MyRecipesState.Search) {
                 focusRequester.requestFocus()
                 keyboardController?.show()
             }
+        }
+
+        if (forced_interaction_result == ForcedInteractionResult.SAVE) {
+            recipes.forEach {
+                if(it.id in updated_titles.keys) {
+                    parent_activity.recipe_view_model.update_recipe(
+                        it,
+                        new_title = updated_titles.getOrDefault(it.id, it.title)
+                    )
+                    // update UI to reflect the change
+                    it.title = updated_titles.getOrDefault(it.id, it.title)
+                }
+            }
+            state = MyRecipesState.Normal
         }
 
         Column(
@@ -102,7 +143,8 @@ fun MyRecipes(modifier: Modifier = Modifier,
                     .padding(bottom = 4.dp)
                     .background(MaterialTheme.colorScheme.surface)
                 ,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 AnimatedVisibility(
                     visible = state != MyRecipesState.Search,
@@ -110,9 +152,10 @@ fun MyRecipes(modifier: Modifier = Modifier,
                     exit = shrinkHorizontally() + fadeOut()
                 ) {
                     Text(
-                        text = "My Recipes",
+                        text = stringResource(R.string.my_recipes),
                         modifier = Modifier.align(Alignment.CenterVertically),
-                        style = MaterialTheme.typography.headlineLarge
+                        style = MaterialTheme.typography.headlineLarge,
+//                        fontSize = font_size.value.sp
                     )
                 }
                 AnimatedVisibility(
@@ -123,9 +166,9 @@ fun MyRecipes(modifier: Modifier = Modifier,
                     TextField(
                         value = search_query,
                         onValueChange = {
-                            data_store.apply_search(it)
+                            parent_activity.recipe_view_model.apply_search(it)
                         },
-                        placeholder = { Text("Search") },
+                        placeholder = { Text(stringResource(R.string.search), fontSize = font_size.value.sp) },
                         singleLine = true,
                         modifier = Modifier
                             .weight(1f)
@@ -143,16 +186,12 @@ fun MyRecipes(modifier: Modifier = Modifier,
                 Row(modifier = Modifier.padding(0.dp)) {
                     if (state == MyRecipesState.Edit) {
                         force_user_interaction(
-                            NavigationUIState.SAVE,
-                            {
-                                state = MyRecipesState.Normal
-                                // todo: save all recipes
-                            }
+                            NavigationUIState.SAVE
                         )
                     } else if (state == MyRecipesState.Search) {
                         IconButton(onClick = {
                             state = MyRecipesState.Normal
-                            data_store.apply_search("")
+                            parent_activity.recipe_view_model.apply_search("")
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
@@ -168,14 +207,6 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                 contentDescription = "Search"
                             )
                         }
-                        IconButton(onClick = {
-                            state = MyRecipesState.Edit
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Edit"
-                            )
-                        }
                         IconButton(onClick = { three_dot_menu_expanded = true }) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
@@ -187,10 +218,10 @@ fun MyRecipes(modifier: Modifier = Modifier,
                             onDismissRequest = { three_dot_menu_expanded = false }
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Create Backup") },
+                                text = { Text(stringResource(R.string.create_backup), fontSize = font_size.value.sp) },
                                 onClick = {
                                     parent_activity.lifecycleScope.launch {
-                                        parent_activity.recipe_repository.export_recipes_to_file(
+                                        parent_activity.recipe_view_model.export_recipes_to_file(
                                             parent_activity
                                         )
                                     }
@@ -198,7 +229,7 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("Import Backup") },
+                                text = { Text(stringResource(R.string.import_backup), fontSize = font_size.value.sp) },
                                 onClick = {
                                     val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                         addCategory(Intent.CATEGORY_OPENABLE)
@@ -208,13 +239,19 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                     three_dot_menu_expanded = false
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.settings), fontSize = font_size.value.sp) },
+                                onClick = {
+                                    three_dot_menu_expanded = false
+                                    navigation_callback(AppDestinations.SETTINGS)
+                                }
+                            )
                         }
                     }
                 }
             }
-//            HorizontalDivider()
             // #################################
-            // Content
+            // Recipe List
             // #################################
             Row(
                 modifier = Modifier
@@ -250,39 +287,21 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                     )
                                 }
                                 if (state == MyRecipesState.Edit) {
-                                    var title by remember { mutableStateOf(recipe.title) }
+                                    var title by remember { mutableStateOf(updated_titles.getOrDefault(recipe.id, recipe.title)) }
                                     TextField(
                                         value = title,
                                         onValueChange = {
                                             title = it
+                                            updated_titles[recipe.id] = it
                                         }, // update state on each keystroke
                                         singleLine = true,
                                         modifier = Modifier.weight(1f)
                                     )
-                                    IconButton(
-                                        enabled = recipe.title != title,
-                                        onClick = {
-                                            parent_activity.recipe_repository.update_recipe(
-                                                recipe,
-                                                new_title = title
-                                            )
-                                            recipe.title = title
-                                            title = ""
-                                            title = recipe.title // reload button state
-                                        }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = "Update Title"
-                                        )
-                                    }
                                     IconButton(onClick = {
-                                        if (parent_activity.current_recipe == recipe) {
+                                        if (parent_activity.app.current_recipe == recipe) {
                                             set_current_recipe(null)
                                         }
-                                        parent_activity.recipe_repository.delete_recipe(
-                                            parent_activity,
-                                            recipe
-                                        )
+                                        parent_activity.recipe_view_model.delete_recipe(recipe)
                                         title = ""
                                         title = recipe.title // update row in list
                                         navigation_callback(AppDestinations.CURRENT_RECIPE)
@@ -293,17 +312,26 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                             contentDescription = "Delete"
                                         )
                                     }
-                                } else {
+                                }
+                                else {
                                     Text(
                                         recipe.title,
+                                        fontSize = font_size.value.sp,
                                         modifier = Modifier
                                             .height(50.dp)  // Must have height first
                                             .wrapContentHeight(Alignment.CenterVertically)
                                             .fillMaxWidth()
-                                            .clickable {
-                                                set_current_recipe(recipe)
-                                                navigation_callback(AppDestinations.CURRENT_RECIPE)
-                                            },
+                                            .combinedClickable (
+                                                onClick = {
+                                                    set_current_recipe(recipe)
+                                                    navigation_callback(AppDestinations.CURRENT_RECIPE)
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    state = MyRecipesState.Edit
+                                                    updated_titles.clear()
+                                                }
+                                            )
                                     )
                                 }
                             }

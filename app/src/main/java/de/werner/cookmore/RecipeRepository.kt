@@ -1,49 +1,68 @@
 package de.werner.cookmore
 
 import android.content.ContentValues
-import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
-import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.net.URL
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 class RecipeRepository(
-    dataStore: DataStore<Preferences>,  // or Room, file, etc.
+    private val dataStore: DataStore<Preferences>
 ) {
     companion object {
         val RECIPES_KEY = stringSetPreferencesKey("recipes")
         val LAST_ID_KEY = intPreferencesKey("last_id")
+
+        val NEW_RECIPE_URL_KEY = stringPreferencesKey("new_recipe_url")
+        val NEW_RECIPE_HTML_KEY = stringPreferencesKey("new_recipe_html")
+        val NEW_RECIPE_IMG_URL_KEY = stringPreferencesKey("new_recipe_img_url")
+        val NEW_RECIPE_NO_IMG_KEY = booleanPreferencesKey("new_recipe_no_img")
     }
 
-    var new_recipe_url: String? = null
-    var new_recipe_html: String? = null
-    var new_recipe_image: Bitmap? = null
-    var new_recipe_image_url: String? = null
-    var new_recipe_no_image_needed: Boolean = false
+    var new_recipe_url: Flow<String> = dataStore.data
+        .map { prefs ->
+            prefs[NEW_RECIPE_URL_KEY] ?: ""
+        }
+    var new_recipe_html: Flow<String> = dataStore.data
+        .map { prefs ->
+            prefs[NEW_RECIPE_HTML_KEY] ?: ""
+        }
+    var new_recipe_image_url: Flow<String> = dataStore.data
+        .map { prefs ->
+            prefs[NEW_RECIPE_IMG_URL_KEY] ?: ""
+        }
+    var new_recipe_no_image_needed: Flow<Boolean> = dataStore.data
+        .map { prefs ->
+            prefs[NEW_RECIPE_NO_IMG_KEY] ?: false
+        }
+
+//    var new_recipe_image: Bitmap? = null
 
 
     var _search_query  =  MutableStateFlow("")
@@ -55,7 +74,7 @@ class RecipeRepository(
 
     val recipes_flow: Flow<List<Recipe>> = dataStore.data
         .map { prefs ->
-            val current_recipes = prefs[RECIPES_KEY] ?: emptySet()
+            prefs[RECIPES_KEY] ?: emptySet()
             RecipeUtil.load_all_recipes()
         }
         .combine(search_query) { recipes, query ->
@@ -68,6 +87,7 @@ class RecipeRepository(
                 }
             }
         }
+
         .catch {
             emit(emptyList())
         }
@@ -81,22 +101,18 @@ class RecipeRepository(
         }
 
 
-    fun store_new_recipe(main_activity: MainActivity): Recipe {
+    suspend fun store_new_recipe(): Recipe {
         // Meta Data
         val meta_data = JSONObject()
         val regex = Regex("<h1>(.*?)</h1>", RegexOption.IGNORE_CASE)
-        val result = regex.find(new_recipe_html!!)
-        var title = ""
+        val result = regex.find(new_recipe_html.first())
         if (result == null) {
             throw kotlin.IllegalArgumentException("The HTML page contains no H1 tag")
         }
-        var recipe_id: Int = 0
-        runBlocking {
-            recipe_id = last_id.first()
-        }
-        title = result.groupValues[1]
-        meta_data.put("url", new_recipe_url!!)
-        new_recipe_image_url ?: meta_data.put("image_url", new_recipe_image_url)
+        val recipe_id = last_id.first()
+        val title = result.groupValues[1]
+        meta_data.put("url", new_recipe_url.first())
+        if (new_recipe_url.first() != "") meta_data.put("image_url", new_recipe_image_url)
         meta_data.put("title", title)
         meta_data.put("id", recipe_id)
 
@@ -114,7 +130,7 @@ class RecipeRepository(
         }
 
         // HTML Page
-        val cleaned_html_data = Util.clean_generated_html(new_recipe_html!!)
+        val cleaned_html_data = Util.clean_generated_html(new_recipe_html.first())
         val html_file = recipe_folder.resolve("page.html")
         html_file.createNewFile()
         outputStream = FileOutputStream(html_file)
@@ -122,10 +138,14 @@ class RecipeRepository(
             it.write(cleaned_html_data.toByteArray())
         }
 
-        if (!new_recipe_no_image_needed && new_recipe_image != null) {
+        if (!new_recipe_no_image_needed.first()) {
             // Banner Image
-            var image_file = recipe_folder.resolve(Constants.BANNER_IMAGE_FILE_NAME)
-            Util.save_bitmap_as_jpeg(new_recipe_image!!, image_file)
+            val image_file = recipe_folder.resolve(Constants.BANNER_IMAGE_FILE_NAME)
+            withContext(Dispatchers.IO) {
+                val input = URL(new_recipe_image_url.first()).openStream()
+                val image = BitmapFactory.decodeStream(input)
+                Util.save_bitmap_as_jpeg(image, image_file)
+            }
 
             // Icon
             Util.create_icon_from_banner(recipe_folder)
@@ -133,37 +153,32 @@ class RecipeRepository(
 
         val recipe = Recipe(
                 recipe_folder.toString(),
-                new_recipe_url!!,
+                new_recipe_url.first(),
                 title,
                 recipe_id,
-                new_recipe_url!!
+                new_recipe_url.first()
             )
 
-        new_recipe_image_url = null
-        new_recipe_html = null
-        new_recipe_image_url = null
-        new_recipe_image = null
-        new_recipe_no_image_needed = false
-
-        main_activity.lifecycleScope.launch {
-            main_activity.data_store.edit { prefs ->
-                prefs[LAST_ID_KEY] = recipe_id + 1
-            }
+        dataStore.edit { prefs ->
+            prefs[NEW_RECIPE_URL_KEY] = ""
+            prefs[NEW_RECIPE_HTML_KEY] = ""
+            prefs[NEW_RECIPE_IMG_URL_KEY] = ""
+            prefs[NEW_RECIPE_NO_IMG_KEY] = false
+            prefs[LAST_ID_KEY] = recipe_id + 1
         }
 
         return recipe
     }
 
 
-    fun delete_recipe(main_activity: MainActivity, recipe: Recipe) {
+    suspend fun delete_recipe(recipe: Recipe) {
         val recipe_folder = File(recipe.path)
         recipe_folder.deleteRecursively()
 
-        main_activity.lifecycleScope.launch {
-            main_activity.data_store.edit { prefs ->
-                prefs[RECIPES_KEY] = setOf("Reload plz") // Trigger reload of recipes
-            }
+        dataStore.edit { prefs ->
+            prefs[RECIPES_KEY] = setOf("Reload plz") // Trigger reload of recipes
         }
+
     }
 
 
@@ -188,6 +203,44 @@ class RecipeRepository(
                     it.write(new_html.toByteArray())
                 }
             }
+        }
+    }
+
+
+    suspend fun try_finalize_new_recipe(
+        url: String? = null, content: String? = null,
+        image_url: String? = null,
+        no_image_needed: Boolean? = null,
+        success_callback: (recipe: Recipe) -> Unit)
+    {
+        if (url != null) {
+            dataStore.edit { prefs ->
+                prefs[NEW_RECIPE_URL_KEY] = url
+            }
+        }
+        if (content != null) {
+            dataStore.edit { prefs ->
+                prefs[NEW_RECIPE_HTML_KEY] = content
+            }
+        }
+        if (image_url != null) {
+            dataStore.edit { prefs ->
+                prefs[NEW_RECIPE_IMG_URL_KEY] = image_url
+            }
+        }
+        if (no_image_needed != null) {
+            dataStore.edit { prefs ->
+                prefs[NEW_RECIPE_NO_IMG_KEY] = no_image_needed
+            }
+        }
+
+        if (new_recipe_url.first() != "" &&
+            new_recipe_html.first() != "" &&
+            (new_recipe_no_image_needed.first() || new_recipe_image_url.first() != "")
+        ) {
+            Log.d("CookMore", "Storing recipe")
+            val new_recipe = store_new_recipe()
+            success_callback(new_recipe)
         }
     }
 
@@ -223,7 +276,7 @@ class RecipeRepository(
         }
 
         dest_backup_file.delete() // Remove copied zip
-        context.data_store.edit { prefs ->
+        dataStore.edit { prefs ->
             prefs[RECIPES_KEY] = setOf("Reload plz") // Trigger reload of recipes
         }
     }

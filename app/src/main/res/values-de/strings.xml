@@ -1,0 +1,33 @@
+<resources>
+    <string name="settings">Einstellungen</string>
+    <string name="appearance">Aussehen</string>
+    <string name="font_size">Textgröße</string>
+    <string name="language">Sprache</string>
+    <string name="app_language">App Sprache:</string>
+    <string name="recipe_language">Rezept Sprache</string>
+    <string name="select_language">Sprache auswählen</string>
+    <string name="search">Suche</string>
+    <string name="no_languages_found">Keine Sprachen gefunden</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="no_recipe_available">Kein Rezept verfügbar</string>
+    <string name="save">Speichern</string>
+    <string name="my_recipes">Meine Rezepte</string>
+    <string name="current_recipe">Aktuelles Rezept</string>
+    <string name="new_recipe">Neues Rezept</string>
+    <string name="malformed_url_error">URL nicht erkannt</string>
+    <string name="use_no_image">Kein Bild</string>
+    <string name="image_download_error">Fehler beim Herunterladen des Bildes</string>
+    <string name="create_backup">Backup erstellen</string>
+    <string name="import_backup">Backup importieren</string>
+    <string name="paste_url">URL tippen oder einfügen</string>
+    <string name="edit_recipe">Rezept bearbeiten</string>
+    <string name="copy_recipe_link">Rezeptlink kopieren</string>
+    <string name="re_generate">Neu generieren</string>
+    <string name="no_recipe_info_text">Erstelle dein erstes Rezept über \"Neues Rezept\"</string>
+    <string name="banner_size">Bannergröße</string>
+    <string name="recipe_sorting">Rezeptsortierung</string>
+    <string name="recipe_sorting_explainer">Reihenfolge der Rezepte in \"Meine Rezepte\"</string>
+    <string name="font_size_explainer">Textgröße in der gesamten App</string>
+    <string name="banner_size_explainer">Größe des Titelbildes in \"Aktuelles Rezept\"</string>
+    <string name="recipe_language_explainer">Zielsprache für Rezepte (übersetzt mit AI)</string>
+</resources>
