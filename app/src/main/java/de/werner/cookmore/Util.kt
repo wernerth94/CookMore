@@ -4,11 +4,13 @@ import android.Manifest
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.ContentUris
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.provider.MediaStore
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -342,8 +344,10 @@ class Util {
                 Toast.makeText(context, "Internet Permission not granted", Toast.LENGTH_LONG).show()
             }
         }
+
     }
 }
+
 
 fun Int.toHtmlColor(): String = String.format("#%06X", 0xFFFFFF and this)
 

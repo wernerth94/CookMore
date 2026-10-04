@@ -28,6 +28,11 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Date
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -282,7 +287,11 @@ class RecipeRepository(
     }
 
 
-    suspend fun export_recipes_to_file(context: MainActivity, file_name: String = "cookmore_backup.zip" ) = withContext(Dispatchers.IO) {
+    suspend fun export_recipes_to_file(context: MainActivity ) = withContext(Dispatchers.IO) {
+        val file_name = "cookmore_backup_" +
+                "${LocalDate.now()}_" +
+                "${LocalTime.now().format(DateTimeFormatter.ofLocalizedTime(FormatStyle.MEDIUM))}".replace("_", "-") +
+                ".zip"
         val src_dir = Constants.FILES_DIR.resolve(Constants.RECIPES_DIR)
         val dest_backup_file = File(Constants.FILES_DIR, file_name)
         if (dest_backup_file.exists()) dest_backup_file.delete()
@@ -316,7 +325,7 @@ class RecipeRepository(
         }
 
         context.runOnUiThread {
-            Toast.makeText(context, "Backup copied to Downloads", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, context.getString(R.string.backup_created), Toast.LENGTH_LONG).show()
         }
     }
 }

@@ -260,7 +260,7 @@ fun CurrentRecipe(
         }
     }
 
-    Text(stringResource(R.string.no_recipe_info_text), modifier=modifier)
+    Text(stringResource(R.string.no_recipes_info), modifier=modifier)
 }
 
 @Composable

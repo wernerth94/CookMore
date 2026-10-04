@@ -21,6 +21,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuite
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteColors
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -162,8 +165,12 @@ fun CookMoreApp() {
         val font_size = parent_activity.settings_view_model.font_size.collectAsState()
 
         NavigationSuiteScaffold(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.surfaceVariant,
+            navigationSuiteColors = NavigationSuiteDefaults.colors(
+                navigationRailContainerColor = MaterialTheme.colorScheme.background, // or Color.Transparent
+                navigationRailContentColor = MaterialTheme.colorScheme.onBackground,
+            ),
+//            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+//            contentColor = MaterialTheme.colorScheme.surfaceVariant,
             navigationSuiteItems = {
                 if(navigation_ui_state == NavigationUIState.SAVE) {
                     item(
@@ -301,6 +308,13 @@ fun CookMoreApp() {
                             viewModel = parent_activity.settings_view_model
                         )
                     }
+
+                    AppDestinations.ABOUT -> {
+                        AboutComposable(
+                            modifier = Modifier.padding(innerPadding),
+                            viewModel = parent_activity.settings_view_model
+                        )
+                    }
                 }
             }
         }
@@ -317,7 +331,8 @@ enum class AppDestinations(
     MY_RECIPES("My Recipes", R.drawable.list, true),
     CURRENT_RECIPE("Current Recipe", R.drawable.article, true),
     NEW_RECIPE("New Recipe", R.drawable.add_circle, true),
-    SETTINGS("Settings", R.drawable.empty_icon, false),
+    SETTINGS("Settings", R.drawable.list, false),
+    ABOUT("About", R.drawable.list, false),
 }
 
 @Composable

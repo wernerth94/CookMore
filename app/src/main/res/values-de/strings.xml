@@ -23,11 +23,14 @@
     <string name="edit_recipe">Rezept bearbeiten</string>
     <string name="copy_recipe_link">Rezeptlink kopieren</string>
     <string name="re_generate">Neu generieren</string>
-    <string name="no_recipe_info_text">Erstelle dein erstes Rezept über \"Neues Rezept\"</string>
     <string name="banner_size">Bannergröße</string>
     <string name="recipe_sorting">Rezeptsortierung</string>
     <string name="recipe_sorting_explainer">Reihenfolge der Rezepte in \"Meine Rezepte\"</string>
     <string name="font_size_explainer">Textgröße in der gesamten App</string>
     <string name="banner_size_explainer">Größe des Titelbildes in \"Aktuelles Rezept\"</string>
     <string name="recipe_language_explainer">Zielsprache für Rezepte (übersetzt mit AI)</string>
+    <string name="no_backup_file_info">Es wurde keine Datei namens \"cookmore_backup\" im Downloads-Ordner gefunden</string>
+    <string name="backup_created">Backup wurde in den Downloads-Ordner kopiert</string>
+    <string name="icon_artists">Icon Künstler</string>
+    <string name="no_recipes_info">Um dein erstes Rezept zu Erstellen, clicke auf \"Rezept hinzufügen\" und füge einen Link ein!</string>
 </resources>

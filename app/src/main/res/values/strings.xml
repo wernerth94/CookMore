@@ -24,11 +24,14 @@
     <string name="edit_recipe">Edit recipe</string>
     <string name="copy_recipe_link">Copy recipe link</string>
     <string name="re_generate">Re-generate</string>
-    <string name="no_recipe_info_text">Add your first recipe via \"Add Recipe\"</string>
     <string name="banner_size">Banner size</string>
     <string name="recipe_sorting">Recipe sorting</string>
     <string name="recipe_sorting_explainer">How recipes are ordered in the \"My Recipes\" list</string>
     <string name="font_size_explainer">Size of all text in the app</string>
     <string name="banner_size_explainer">Size of the banner image in \"Current Recipe\"</string>
     <string name="recipe_language_explainer">Translation of scanned recipes (translated by AI)</string>
+    <string name="no_backup_file_info">No file with name \"cookmore_backup\" found in Downloads</string>
+    <string name="backup_created">Backup copied to Downloads</string>
+    <string name="icon_artists">Icon artists</string>
+    <string name="no_recipes_info">To create your first recipe, click \"Add Recipe\" and paste a link!</string>
 </resources>

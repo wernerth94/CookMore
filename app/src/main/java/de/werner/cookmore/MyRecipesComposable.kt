@@ -246,6 +246,13 @@ fun MyRecipes(modifier: Modifier = Modifier,
                                     navigation_callback(AppDestinations.SETTINGS)
                                 }
                             )
+                            DropdownMenuItem(
+                                text = { Text("About", fontSize = font_size.value.sp) },
+                                onClick = {
+                                    three_dot_menu_expanded = false
+                                    navigation_callback(AppDestinations.ABOUT)
+                                }
+                            )
                         }
                     }
                 }
@@ -259,80 +266,93 @@ fun MyRecipes(modifier: Modifier = Modifier,
                     .padding(4.dp),
                 horizontalArrangement = Arrangement.Start
             ) {
-                LazyColumn() {
-                    items(recipes) { recipe ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 0.dp, vertical = 2.dp),
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            if (RecipeUtil.still_exists(recipe)) {
-                                val icon = RecipeUtil.get_icon(recipe)
-                                if (icon != null) {
-                                    Image(
-                                        icon.asImageBitmap(), "Recipe Icon",
-                                        Modifier
-                                            .size(50.dp)
-                                            .padding(
-                                                start = 0.dp,
-                                                top = 0.dp,
-                                                end = 8.dp,
-                                                bottom = 0.dp
-                                            )
-                                            .clickable {
-                                                set_current_recipe(recipe)
-                                                navigation_callback(AppDestinations.CURRENT_RECIPE)
-                                            },
-                                    )
-                                }
-                                if (state == MyRecipesState.Edit) {
-                                    var title by remember { mutableStateOf(updated_titles.getOrDefault(recipe.id, recipe.title)) }
-                                    TextField(
-                                        value = title,
-                                        onValueChange = {
-                                            title = it
-                                            updated_titles[recipe.id] = it
-                                        }, // update state on each keystroke
-                                        singleLine = true,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    IconButton(onClick = {
-                                        if (parent_activity.app.current_recipe == recipe) {
-                                            set_current_recipe(null)
-                                        }
-                                        parent_activity.recipe_view_model.delete_recipe(recipe)
-                                        title = ""
-                                        title = recipe.title // update row in list
-                                        navigation_callback(AppDestinations.CURRENT_RECIPE)
-                                        navigation_callback(AppDestinations.MY_RECIPES) // update navigation bar
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Delete"
-                                        )
-                                    }
-                                }
-                                else {
-                                    Text(
-                                        recipe.title,
-                                        fontSize = font_size.value.sp,
-                                        modifier = Modifier
-                                            .height(50.dp)  // Must have height first
-                                            .wrapContentHeight(Alignment.CenterVertically)
-                                            .fillMaxWidth()
-                                            .combinedClickable (
-                                                onClick = {
+                if(recipes.isEmpty()) {
+                    Text(stringResource(R.string.no_recipes_info))
+                }
+                else {
+                    LazyColumn() {
+                        items(recipes) { recipe ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 0.dp, vertical = 2.dp),
+                                horizontalArrangement = Arrangement.Start
+                            ) {
+                                if (RecipeUtil.still_exists(recipe)) {
+                                    val icon = RecipeUtil.get_icon(recipe)
+                                    if (icon != null) {
+                                        Image(
+                                            icon.asImageBitmap(), "Recipe Icon",
+                                            Modifier
+                                                .size(50.dp)
+                                                .padding(
+                                                    start = 0.dp,
+                                                    top = 0.dp,
+                                                    end = 8.dp,
+                                                    bottom = 0.dp
+                                                )
+                                                .clickable {
                                                     set_current_recipe(recipe)
                                                     navigation_callback(AppDestinations.CURRENT_RECIPE)
                                                 },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    state = MyRecipesState.Edit
-                                                    updated_titles.clear()
-                                                }
+                                        )
+                                    }
+                                    if (state == MyRecipesState.Edit) {
+                                        var title by remember {
+                                            mutableStateOf(
+                                                updated_titles.getOrDefault(
+                                                    recipe.id,
+                                                    recipe.title
+                                                )
                                             )
-                                    )
+                                        }
+                                        TextField(
+                                            value = title,
+                                            onValueChange = {
+                                                title = it
+                                                updated_titles[recipe.id] = it
+                                            }, // update state on each keystroke
+                                            singleLine = true,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        IconButton(onClick = {
+                                            if (parent_activity.app.current_recipe == recipe) {
+                                                set_current_recipe(null)
+                                            }
+                                            parent_activity.recipe_view_model.delete_recipe(recipe)
+                                            title = ""
+                                            title = recipe.title // update row in list
+                                            navigation_callback(AppDestinations.CURRENT_RECIPE)
+                                            navigation_callback(AppDestinations.MY_RECIPES) // update navigation bar
+                                        }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Delete,
+                                                contentDescription = "Delete"
+                                            )
+                                        }
+                                    } else {
+                                        Text(
+                                            recipe.title,
+                                            fontSize = font_size.value.sp,
+                                            modifier = Modifier
+                                                .height(50.dp)  // Must have height first
+                                                .wrapContentHeight(Alignment.CenterVertically)
+                                                .fillMaxWidth()
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        set_current_recipe(recipe)
+                                                        navigation_callback(AppDestinations.CURRENT_RECIPE)
+                                                    },
+                                                    onLongClick = {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        state = MyRecipesState.Edit
+                                                        updated_titles.clear()
+                                                    }
+                                                )
+                                        )
+                                    }
                                 }
                             }
                         }
