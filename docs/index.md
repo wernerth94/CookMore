@@ -1,4 +1,4 @@
-# CookMore Privacy Policy
+# Privacy Policy
 Last updated: 04.10.2026 \
 **Developer:** Thorben Werner \
 For further questions, please open a Github issue [here](https://github.com/wernerth94/CookMore/issues) or 
