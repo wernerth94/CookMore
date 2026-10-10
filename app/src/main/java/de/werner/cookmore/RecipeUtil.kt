@@ -63,13 +63,21 @@ class RecipeUtil {
             }
         }
 
-        fun inject_css_for_viewer(recipe_html: String, background_color: Color, font_size: Int): String {
+        fun inject_css_for_viewer(recipe_html: String, background_color: Color, font_color: Color, font_size: Int): String {
             val header_regex = Regex("</head>", RegexOption.IGNORE_CASE)
             val injection = """
                 <style>
+                    :root {
+                      --bg: ${background_color.hashCode().toHtmlColor()};
+                      --text: ${font_color.hashCode().toHtmlColor()};
+                    }
                     body {
-                      background-color: ${background_color.hashCode().toHtmlColor()};
+                      background-color: var(--bg);
+                      color: var(--text);
                       font-size: ${font_size}px;
+                    }
+                    h1, h2, h3, h4, h5, h6 {
+                      color: var(--text);
                     }
                     .tagged {
                       display: inline;  

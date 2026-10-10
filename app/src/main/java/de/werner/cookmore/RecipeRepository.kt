@@ -264,6 +264,9 @@ class RecipeRepository(
             dest_recipe_dir.deleteRecursively()
         }
         dest_recipe_dir.mkdirs()
+        dataStore.edit { prefs ->
+            prefs[RECIPES_KEY] = emptySet()
+        }
 
         ZipFile(dest_backup_file).use { zip->
             zip.entries().asSequence().forEach { entry ->

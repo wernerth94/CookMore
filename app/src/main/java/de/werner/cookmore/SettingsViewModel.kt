@@ -28,6 +28,9 @@ class SettingsViewModel(
     val app_language = repository.app_language
         .stateIn(viewModelScope, SharingStarted.Lazily, Constants.APP_LANGUAGES.first())
 
+    val copy_nutr_values = repository.copy_nutr_values
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
 
     fun set_font_size(size: Int) {
         viewModelScope.launch {
@@ -56,6 +59,12 @@ class SettingsViewModel(
     fun set_app_language(lang: String) {
         viewModelScope.launch {
             repository.set_app_language(lang)
+        }
+    }
+
+    fun set_copy_nutr_values(copy: Boolean) {
+        viewModelScope.launch {
+            repository.set_copy_nutr_values(copy)
         }
     }
 }

@@ -236,6 +236,7 @@ fun CurrentRecipe(
                         val html_with_css = RecipeUtil.inject_css_for_viewer(
                             html_page!!,
                             MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.onSurface,
                             font_size.value
                         )
 

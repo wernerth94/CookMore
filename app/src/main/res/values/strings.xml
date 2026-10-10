@@ -34,4 +34,8 @@
     <string name="backup_created">Backup copied to Downloads</string>
     <string name="icon_artists">Icon artists</string>
     <string name="no_recipes_info">To create your first recipe, click \"Add Recipe\" and paste a link!</string>
+    <string name="policy_link">Privacy Policy</string>
+    <string name="settings_recipe_section">Recipes</string>
+    <string name="copy_nutr_values">Copy nutrition values</string>
+    <string name="copy_nutr_values_explainer">Copies a block of nutrition values of the recipe (if given)</string>
 </resources>

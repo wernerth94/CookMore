@@ -142,8 +142,12 @@ class Util {
             }
 
             val recipe_language = main_activity.settings_view_model.recipe_language.value
+            val copy_nutr_values = main_activity.settings_view_model.copy_nutr_values.value
 
             var prompt =  "Summarize this HTML page by extracting the recipe content and cooking instructions and removing all unnecessary information.\n"
+            if (copy_nutr_values) {
+                prompt += "If the recipe has a block of nutritional values in it, you can copy that as well. \n"
+            }
             prompt += "Finally, format this as an HTML page again, so that I can display it in a webview. \n"
             if (recipe_language.lowercase() == "keep original") {
                 prompt += "Please keep the original language of the recipe intact. \n"

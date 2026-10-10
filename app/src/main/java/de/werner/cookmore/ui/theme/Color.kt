@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 //val BackgroundPink = Color(0xFFA48D47)
 val BackgroundPink = Color(0xFFFFFBFE)
+val BackgroundBlack = Color(0x121212)
 
 // Dark
 // ##################################

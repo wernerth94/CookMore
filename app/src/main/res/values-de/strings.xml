@@ -33,4 +33,8 @@
     <string name="backup_created">Backup wurde in den Downloads-Ordner kopiert</string>
     <string name="icon_artists">Icon Künstler</string>
     <string name="no_recipes_info">Um dein erstes Rezept zu Erstellen, clicke auf \"Rezept hinzufügen\" und füge einen Link ein!</string>
+    <string name="policy_link">Privacy Policy</string>
+    <string name="settings_recipe_section">Rezepte</string>
+    <string name="copy_nutr_values">Nährwerte kopieren</string>
+    <string name="copy_nutr_values_explainer">Kopiert eventuell angebene Nährwerte des Rezepts</string>
 </resources>

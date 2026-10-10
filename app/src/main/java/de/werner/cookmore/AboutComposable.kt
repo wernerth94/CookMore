@@ -62,7 +62,37 @@ fun AboutComposable(
         ) {
             // ########################################
             item {
-                Text(stringResource(R.string.icon_artists), style = MaterialTheme.typography.titleMedium, fontSize = fontSize.sp)
+                Text(stringResource(R.string.policy_link), style = MaterialTheme.typography.titleMedium,
+                    fontSize = (fontSize + 4).sp)
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 1.dp),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Link", fontSize = fontSize.sp)
+                    IconButton(onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, "https://wernerth94.github.io/CookMore/".toUri())
+                        context.startActivity(intent)
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.link_2),
+                            contentDescription = "Profile"
+                        )
+                    }
+                }
+            }
+
+
+            // ########################################
+            item {
+                Text(stringResource(R.string.icon_artists), style = MaterialTheme.typography.titleMedium,
+                    fontSize = (fontSize + 4).sp,
+                    modifier = Modifier.padding(top=20.dp))
             }
 
             item {

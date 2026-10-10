@@ -165,10 +165,10 @@ fun CookMoreApp() {
         val font_size = parent_activity.settings_view_model.font_size.collectAsState()
 
         NavigationSuiteScaffold(
-            navigationSuiteColors = NavigationSuiteDefaults.colors(
-                navigationRailContainerColor = MaterialTheme.colorScheme.background, // or Color.Transparent
-                navigationRailContentColor = MaterialTheme.colorScheme.onBackground,
-            ),
+//            navigationSuiteColors = NavigationSuiteDefaults.colors(
+//                navigationRailContainerColor = MaterialTheme.colorScheme.background, // or Color.Transparent
+//                navigationRailContentColor = MaterialTheme.colorScheme.onBackground,
+//            ),
 //            containerColor = MaterialTheme.colorScheme.surfaceVariant,
 //            contentColor = MaterialTheme.colorScheme.surfaceVariant,
             navigationSuiteItems = {

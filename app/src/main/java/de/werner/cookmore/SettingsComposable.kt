@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +49,7 @@ fun SettingsComposable(
     val recipe_sorting by viewModel.recipe_sorting.collectAsStateWithLifecycle()
 //    val app_language by viewModel.app_language.collectAsStateWithLifecycle()
     val recipe_language by viewModel.recipe_language.collectAsStateWithLifecycle()
+    val copy_nutr_values by viewModel.copy_nutr_values.collectAsStateWithLifecycle()
 
     // Header
     Column(
@@ -218,7 +220,7 @@ fun SettingsComposable(
             // ########################################
             item {
                 HorizontalDivider(modifier = Modifier.padding(top=13.dp))
-                Text(stringResource(R.string.language), style = MaterialTheme.typography.titleMedium, fontSize = fontSize.sp)
+                Text(stringResource(R.string.settings_recipe_section), style = MaterialTheme.typography.titleMedium, fontSize = fontSize.sp)
             }
 
             // Recipe Language
@@ -260,6 +262,36 @@ fun SettingsComposable(
                             on_option_selected = { viewModel.set_recipe_language(it) },
                             on_dismiss = { recipe_lang_selector = false })
                     }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        Text(stringResource(R.string.copy_nutr_values), fontSize = fontSize.sp)
+                        Text(
+                            stringResource(R.string.copy_nutr_values_explainer),
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                lineHeight = (fontSize-4).sp,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false)
+                            ),
+                            fontSize = (fontSize-4).sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Switch(
+                        checked = copy_nutr_values,
+                        onCheckedChange = { viewModel.set_copy_nutr_values(it) }
+                    )
                 }
             }
         }

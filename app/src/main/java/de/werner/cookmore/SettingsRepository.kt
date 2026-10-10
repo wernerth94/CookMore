@@ -2,6 +2,7 @@ package de.werner.cookmore
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,6 +20,7 @@ class SettingsRepository(
         val RECIPE_SORTING = stringPreferencesKey("recipe_sorting")
         val RECIPE_LANGUAGE = stringPreferencesKey("recipe_language")
         val APP_LANGUAGE = stringPreferencesKey("app_language")
+        val COPY_NUTR_VALUES = booleanPreferencesKey("copy_nutr_values")
     }
 
     val font_size: Flow<Int> = dataStore.data
@@ -43,6 +45,10 @@ class SettingsRepository(
         .map { prefs ->
             prefs[APP_LANGUAGE] ?: Constants.APP_LANGUAGES.first()
         }
+    val copy_nutr_values: Flow<Boolean> = dataStore.data
+        .map { prefs ->
+            prefs[COPY_NUTR_VALUES] ?: false
+        }
 
 
     suspend fun set_font_size(size: Int) {
@@ -59,6 +65,9 @@ class SettingsRepository(
     }
     suspend fun set_app_language(lang: String) {
         dataStore.edit { if (lang in Constants.APP_LANGUAGES) it[APP_LANGUAGE] = lang }
+    }
+    suspend fun set_copy_nutr_values(copy: Boolean) {
+        dataStore.edit { it[COPY_NUTR_VALUES] = copy }
     }
 }
 

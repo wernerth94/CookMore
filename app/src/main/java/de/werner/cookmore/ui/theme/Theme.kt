@@ -1,6 +1,5 @@
 package de.werner.cookmore.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -13,8 +12,10 @@ import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
     primary = BlueEnergy,
-    surface = SageGreen,
-    background = BackgroundPink,
+    surface = DarkGreen,
+//    surface = SageGreen,
+    background = BackgroundBlack,
+//    background = BackgroundPink,
     surfaceVariant = PaleState
 )
 
